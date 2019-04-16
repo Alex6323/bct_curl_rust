@@ -10,7 +10,6 @@ impl Batch64Hasher {
             hash_length,
             num_rounds,
         }
-        //this.reqQueue = new ArrayBlockingQueue<>(MAX_BATCH_SIZE * 2);
     }
 }
 

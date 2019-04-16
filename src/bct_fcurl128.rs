@@ -1,6 +1,5 @@
 use crate::constants::*;
 
-//pub fn bct_fcurl_64(transactions: &[[i8; TRANSACTION_TRIT_LENGTH]]) -> Vec<[i8; HASH_LENGTH]> {
 pub fn bct_fcurl_128(transactions: &Vec<Vec<i8>>, num_rounds: usize) -> Vec<[i8; HASH_LENGTH]> {
     let mut offset = 0;
     let mut length = transactions.len();

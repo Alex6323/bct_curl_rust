@@ -28,7 +28,7 @@ fn main() {
     println!("| You might want to run this tool several times as the results vary a lot |");
     println!("| depending on how busy your machine is at the moment.                    |");
     println!("|                                                                         |");
-    println!("|{:^73}|", format!("Algorithm: Curl-P-{}", NUM_ROUNDS));
+    println!("|{:^73}|", format!("Hash-Function: Curl-P-{}", NUM_ROUNDS));
     println!("|{:^73}|", format!("Workload: {} hashes", NUM_HASHES));
     println!("+-------------------------------------------------------------------------+");
     println!();
@@ -194,7 +194,7 @@ fn bench_bct_curl_64(num_hashes: usize) {
             //assert_eq!(0, bct_mux.len());
         }
     }
-    print_timing("BCT-Curl-64 (1 thread)", start.elapsed(), num_hashes);
+    print_timing("BCT-64-Curl (1 thread)", start.elapsed(), num_hashes);
 }
 
 fn bench_bct_curl_128(num_hashes: usize) {
