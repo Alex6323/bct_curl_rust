@@ -76,10 +76,10 @@ pub fn bct_fcurl_64(transactions: &[Vec<i8>], num_rounds: usize) -> Vec<[i8; HAS
                 let lo = (state_lo[i] >> j) & 0x1;
                 let hi = (state_hi[i] >> j) & 0x1;
 
-                match (lo, hi) {
-                    (1, 0) => hashes[offset + j][i] = -1,
-                    (0, 1) => hashes[offset + j][i] = 1,
-                    (_, _) => hashes[offset + j][i] = 0,
+                hashes[offset + j][i] = match (lo, hi) {
+                    (1, 0) => -1,
+                    (0, 1) => 1,
+                    (_, _) => 0,
                 }
             }
         }
@@ -94,7 +94,7 @@ pub fn bct_fcurl_64(transactions: &[Vec<i8>], num_rounds: usize) -> Vec<[i8; HAS
     hashes
 }
 
-#[inline]
+#[inline(always)]
 unsafe fn transform(
     state_lo: &mut [u64; STATE_LENGTH],
     state_hi: &mut [u64; STATE_LENGTH],
@@ -173,7 +173,7 @@ mod bct_fcurl_tests {
         let tx_trits = from_tryte_string(MAINNET_TRYTES_1);
         transactions.push(tx_trits);
 
-        let hash_trits64 = bct_fcurl_64(&transactions, NUM_ROUNDS);
+        let hash_trits64 = bct_fcurl_64(&transactions, 81);
         let hash_trits1 = hash_trits64[0];
 
         //println!("{:?}", hash_trits1);

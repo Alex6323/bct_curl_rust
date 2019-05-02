@@ -8,6 +8,3 @@ pub fn xxhash(trits: &[i8]) -> u64 {
     });
     xxhash.finish()
 }
-
-//let mut hash: HashMap<_, _, BuildHasherDefault<XxHash>> = Default::default();
-//hash.insert(42, "the answer");

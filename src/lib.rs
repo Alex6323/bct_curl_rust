@@ -10,4 +10,5 @@ pub mod convert;
 pub mod curl;
 pub mod fcurl;
 pub mod simd_bct_fcurl;
+pub mod troika;
 pub mod xxhash;

@@ -12,6 +12,7 @@ scoped-pool = "1.0.0"
 num_cpus = "1.10.0"
 paste = "0.1.5"
 twox-hash = "1.2.0"
+bytes = "0.4.12"
 
 [lib]
 name = "bct_curl_rust"

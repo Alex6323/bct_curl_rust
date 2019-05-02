@@ -9,7 +9,7 @@ pub struct Curl {
 impl Default for Curl {
     fn default() -> Self {
         Curl {
-            num_rounds: NUM_ROUNDS,
+            num_rounds: NUM_CURL_ROUNDS,
             state: [0; STATE_LENGTH],
             scratchpad: [0; STATE_LENGTH],
         }

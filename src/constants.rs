@@ -1,5 +1,7 @@
 pub const HASH_LENGTH: usize = 243;
-pub const NUM_ROUNDS: usize = 81;
+pub const NUM_HASHES: usize = 5_000;
+pub const NUM_CURL_ROUNDS: usize = 81;
+pub const NUM_TROIKA_ROUNDS: usize = 24;
 pub const STATE_LENGTH: usize = 3 * HASH_LENGTH;
 pub const MAX_BATCH_SIZE_64: usize = 64;
 pub const MAX_BATCH_SIZE_128: usize = 128;
