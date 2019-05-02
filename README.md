@@ -1,26 +1,26 @@
-# Various Curl implementations in Rust
+# About
 
-## Description
-This projects includes various Curl implementations:
-* Curl (standard)
-* Curl (stateless)
-* BCT-Curl (standard, 64bit) <-- Identical to the Java version
-* BCT-Curl (standard, 128bit)
-* BCT-Curl (stateless, 64bit) <-- the fastest implementation
-* BCT-Curl (stateless, 128bit)
-* SIMD-BCT-Curl (stateless, 64bit)
+This application compares IOTA hashfunctions, namely various Curl and Troika versions:
 
-Interestingly the SIMD version is not the fastest implementation. Although I tried hard to optimize the code to make it faster, I think it might be very well the case, that the compiler already vectorizes the non-SIMD code automatically, and coding it manually only introduces inefficiencies. Also the 128 bit versions are slower than the 64 bit versions.
+* Curl
+* Functional Curl
+* BCT-Curl (batch size = 64)
+* BCT-Curl (batch size = 128)
+* Functional BCT-Curl (batch size = 64)
+* Functional BCT-Curl (batch size = 128)
+* SIMD Functional BCT-Curl (batch size = 64)
+* Troika 
 
-## BCT-what?
+## What does BCT stand for?
 
-BCT-Curl is vastly more efficient than the standard Curl implementation as you'll see for yourself if you run the program. In short it optimizes on two ends:
-* Encodes each trit with 2 bits instead of 8, so for each trit there is only 1 bit wasted,
-* Interlaces 64 transactions and hashes them at once. It achieves this by storing the trit data in two lanes (high, low) consisting of 8019 * 64bit integers.
+BCT stands for **B**inary en**c**oded **t**rinary, and it is a vectorization mechanism similar to SIMD that can - given some preconditions - be used to optimize IOTA's hashing functions. It basically does the following:
 
-## How to run it
-* If you haven't already, install Rust now.
-* Clone the repo and cd into the project directory.
+* Encodes each trit using 2 bits so that for each trit only 1 bit is wasted,
+* Using a 64bit integer interlaces 64 transactions and hash them in parallel.
+
+## How to run the application
+* If you haven't already, install Rust now by following the instructions [here](https://rust-lang.org/tools/install).
+* Clone the repo and cd into it
 * Then simply type:
     ```Bash
     cargo run --release
