@@ -1,7 +1,36 @@
 use super::constants::*;
-use super::types::Trit;
 
-pub const ROUND_CONSTANTS: [[Trit; COLUMNS * SLICES]; NUM_ROUNDS] = [
+pub const SBOX_LOOKUP: [u32; 27] = [
+    6,  // 020 <-  0 0 000
+    25, // 122 <-  1 A 100
+    17, // 221 <-  2 B 200
+    5,  // 210 <-  3 C 010
+    15, // 021 <-  4 D 110
+    10, // 101 <-  5 E 210
+    4,  // 110 <-  6 F 020
+    20, // 202 <-  7 G 120
+    24, // 022 <-  8 H 220
+    0,  // 000 <-  9 I 001
+    1,  // 100 <- 10 J 101
+    2,  // 200 <- 11 K 201
+    9,  // 001 <- 12 L 011
+    22, // 112 <- 13 M 111
+    26, // 222 <- 14 N 211
+    18, // 002 <- 15 O 021
+    16, // 121 <- 16 P 121
+    14, // 211 <- 17 Q 221
+    3,  // 010 <- 18 R 002
+    13, // 111 <- 19 S 102
+    23, // 212 <- 20 T 202
+    7,  // 120 <- 21 U 012
+    11, // 201 <- 22 V 112
+    12, // 011 <_ 23 W 212
+    8,  // 220 <- 24 X 022
+    21, // 012 <- 25 Y 122
+    19, // 102 <- 26 Z 222
+];
+
+pub const ROUND_CONSTANTS: [[u8; COLUMNS * SLICES]; NUM_ROUNDS] = [
     [
         2, 2, 2, 2, 1, 2, 0, 1, 0, 1, 1, 0, 2, 0, 1, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 0, 0, 2, 0, 2,
         1, 0, 2, 2, 2, 1, 0, 2, 2, 0, 0, 1, 2, 2, 1, 0, 1, 0, 1, 2, 2, 2, 0, 1, 2, 2, 1, 1, 2, 1,
@@ -268,14 +297,26 @@ pub const ROUND_CONSTANTS: [[Trit; COLUMNS * SLICES]; NUM_ROUNDS] = [
     ],
 ];
 
-pub const SBOX_LOOKUP: [u8; 27] = [
-    6, 25, 17, 5, 15, 10, 4, 20, 24, 0, 1, 2, 9, 22, 26, 18, 16, 14, 3, 13, 23, 7, 11, 12, 8, 21,
-    19,
-];
-
-pub const SHIFT_ROWS_PARAM: [usize; 3] = [0, 1, 2];
-
-pub const SHIFT_LANES_PARAM: [usize; 27] = [
-    19, 13, 21, 10, 24, 15, 2, 9, 3, 14, 0, 6, 5, 1, 25, 22, 23, 20, 7, 17, 26, 12, 8, 18, 16, 11,
-    4,
-];
+fn print_round_constants() {
+    /*
+    const int s[27] = {1,      2,      4,       8,       16,      32,      64,       128,      256,
+                       512,    1024,   2048,    4096,    8192,    16384,   32768,    65536,    131072,
+                       262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864};
+    for (int round = 0; round < NUM_ROUNDS; ++round) {
+      for (int col = 0; col < COLUMNS; ++col) {
+        int p = 0, n = 0;
+        for (int slice = 0; slice < SLICES; ++slice) {
+          if (round_constants[round][slice * COLUMNS + col] == 1) {
+            p += s[slice];
+          }
+          if (round_constants[round][slice * COLUMNS + col] == 2) {
+            n += s[slice];
+          }
+        }
+        printf("{%d,%d}", p, n);
+        if (col < COLUMNS - 1) printf(", ");
+      }
+      printf("},\n{");
+    }
+    */
+}

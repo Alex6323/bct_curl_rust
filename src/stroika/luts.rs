@@ -1,7 +1,9 @@
 use super::constants::*;
 use super::types::Trit;
 
-pub const ROUND_CONSTANTS: [[Trit; COLUMNS * SLICES]; NUM_ROUNDS] = [
+//pub const SIMD_ROUND_CONSTANTS: [[Trit; COLUMNS * SLICES]; NUM_ROUNDS] = [];
+
+pub const ROUND_CONSTANTS: [[u8; COLUMNS * SLICES]; NUM_ROUNDS] = [
     [
         2, 2, 2, 2, 1, 2, 0, 1, 0, 1, 1, 0, 2, 0, 1, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 0, 0, 2, 0, 2,
         1, 0, 2, 2, 2, 1, 0, 2, 2, 0, 0, 1, 2, 2, 1, 0, 1, 0, 1, 2, 2, 2, 0, 1, 2, 2, 1, 1, 2, 1,

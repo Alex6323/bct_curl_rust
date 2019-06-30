@@ -1,11 +1,12 @@
 use super::constants::*;
 use super::luts::*;
+use super::types::{Trit};
 
-pub fn troika(out_buf: &mut [Trit], in_buf: &[u8]) {
+pub fn troika(out_buf: &mut [Trit], in_buf: &[Trit]) {
     troika_var_rounds(out_buf, in_buf, NUM_ROUNDS)
 }
 
-pub fn troika_var_rounds(out_buf: &mut [Trit], in_buf: &[u8], num_rounds: usize) {
+pub fn troika_var_rounds(out_buf: &mut [Trit], in_buf: &[Trit], num_rounds: usize) {
     let out_len = out_buf.len();
     let in_len = in_buf.len();
     let mut state = [0u8; STATE_SIZE];

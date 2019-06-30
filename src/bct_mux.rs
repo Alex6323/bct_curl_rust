@@ -124,10 +124,10 @@ impl BCTDemultiplexer128 {
             let lo = (self.trits.lo[i] >> index) & 0x1;
             let hi = (self.trits.hi[i] >> index) & 0x1;
 
-            match (lo, hi) {
-                (1, 0) => result[i] = -1,
-                (0, 1) => result[i] = 1,
-                (_, _) => result[i] = 0,
+            result[i] = match (lo, hi) {
+                (1, 0) => -1,
+                (0, 1) => 1,
+                (_, _) => 0,
             }
         }
         result

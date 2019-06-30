@@ -1,4 +1,4 @@
 mod constants;
 mod luts;
 mod types;
-pub mod troika;
+pub mod stroika;

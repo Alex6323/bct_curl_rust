@@ -9,6 +9,8 @@ pub mod constants;
 pub mod convert;
 pub mod curl;
 pub mod fcurl;
+pub mod ftroika;
 pub mod simd_bct_fcurl;
+pub mod stroika;
 pub mod troika;
 pub mod xxhash;
