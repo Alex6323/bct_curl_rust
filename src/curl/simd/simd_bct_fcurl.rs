@@ -1,4 +1,7 @@
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{
+    AtomicUsize,
+    Ordering,
+};
 
 use scoped_pool::Pool;
 use simdeez::avx2::*;
@@ -9,7 +12,10 @@ use simdeez::*;
 
 use crate::constants::*;
 
-pub fn simd_bct_fcurl_64(transactions: &[Vec<i8>], num_rounds: usize) -> Vec<[i8; HASH_LENGTH]> {
+pub fn simd_bct_fcurl_64(
+    transactions: &[Vec<i8>],
+    num_rounds: usize,
+) -> Vec<[i8; HASH_LENGTH]> {
     let mut offset = 0;
     let mut length = transactions.len();
     let mut hashes = vec![[0i8; HASH_LENGTH]; length];
@@ -129,7 +135,12 @@ macro_rules! swap {
 // The swap macro invocations align the result data, so the compiler can copy larger
 // chunks back into the state. Unfortunately it had no effect performance-wise :(
 simd_runtime_generate!(
-    fn inner_loop(s2_lo: *const i64, s2_hi: *const i64, s1_lo: *mut i64, s1_hi: *mut i64) {
+    fn inner_loop(
+        s2_lo: *const i64,
+        s2_hi: *const i64,
+        s1_lo: *mut i64,
+        s1_hi: *mut i64,
+    ) {
         let step = S::VI64_WIDTH;
 
         let mut er: Vec<i64> = Vec::with_capacity(2 * step);
@@ -185,7 +196,12 @@ simd_runtime_generate!(
 );
 
 // Just for comparision (this is scalar code), produces the correct hash
-unsafe fn inner_loop_basic(s2_lo: *const i64, s2_hi: *const i64, s1_lo: *mut i64, s1_hi: *mut i64) {
+unsafe fn inner_loop_basic(
+    s2_lo: *const i64,
+    s2_hi: *const i64,
+    s1_lo: *mut i64,
+    s1_hi: *mut i64,
+) {
     for i in 0..364 {
         let (x, y, z) = (i + 1, i + 365, i);
 
@@ -211,17 +227,22 @@ unsafe fn inner_loop_basic(s2_lo: *const i64, s2_hi: *const i64, s1_lo: *mut i64
 }
 
 // Just for comparision (manually vectorized code); produces the correct hash
-unsafe fn inner_loop_u64x4(s2_lo: *const i64, s2_hi: *const i64, s1_lo: *mut i64, s1_hi: *mut i64) {
+unsafe fn inner_loop_u64x4(
+    s2_lo: *const i64,
+    s2_hi: *const i64,
+    s1_lo: *mut i64,
+    s1_hi: *mut i64,
+) {
     //
     for i in (0..364).step_by(4) {
         let (x, y, z) = (i + 1, i + 365, i);
 
-        let a = i64x4::new(s2_lo.offset(x));
-        let b = i64x4::new(s2_hi.offset(x));
-        let c = i64x4::new(s2_lo.offset(y));
-        let k = i64x4::new(s2_hi.offset(y));
-        let p = i64x4::new(s2_lo.offset(z));
-        let q = i64x4::new(s2_hi.offset(z));
+        let a = I64x4::new(s2_lo.offset(x));
+        let b = I64x4::new(s2_hi.offset(x));
+        let c = I64x4::new(s2_lo.offset(y));
+        let k = I64x4::new(s2_hi.offset(y));
+        let p = I64x4::new(s2_lo.offset(z));
+        let q = I64x4::new(s2_hi.offset(z));
 
         let d = b.xor(&c);
         let e = d.and(&a).not();
@@ -268,8 +289,10 @@ pub fn simd_bct_fcurl_64_par(
                 let i = index.fetch_add(1, Ordering::SeqCst);
                 //
                 let offset = i * chunk_length;
-                let hash_trits =
-                    simd_bct_fcurl_64(&transactions[offset..offset + chunk_length], num_rounds);
+                let hash_trits = simd_bct_fcurl_64(
+                    &transactions[offset..offset + chunk_length],
+                    num_rounds,
+                );
                 // TODO: create output vector and actually return something
             })
         }
@@ -280,49 +303,33 @@ pub fn simd_bct_fcurl_64_par(
 }
 
 // TEMP: just one step before using actual SIMD type
-struct i64x4(i64, i64, i64, i64);
+struct I64x4(i64, i64, i64, i64);
 
-impl i64x4 {
+impl I64x4 {
     pub unsafe fn new(p: *const i64) -> Self {
-        i64x4(*p.offset(0), *p.offset(1), *p.offset(2), *p.offset(3))
+        I64x4(*p.offset(0), *p.offset(1), *p.offset(2), *p.offset(3))
     }
 
     pub fn not(&self) -> Self {
-        i64x4(!self.0, !self.1, !self.2, !self.3)
+        I64x4(!self.0, !self.1, !self.2, !self.3)
     }
 
     pub fn xor(&self, right: &Self) -> Self {
-        i64x4(
-            self.0 ^ right.0,
-            self.1 ^ right.1,
-            self.2 ^ right.2,
-            self.3 ^ right.3,
-        )
+        I64x4(self.0 ^ right.0, self.1 ^ right.1, self.2 ^ right.2, self.3 ^ right.3)
     }
 
     pub fn and(&self, right: &Self) -> Self {
-        i64x4(
-            self.0 & right.0,
-            self.1 & right.1,
-            self.2 & right.2,
-            self.3 & right.3,
-        )
+        I64x4(self.0 & right.0, self.1 & right.1, self.2 & right.2, self.3 & right.3)
     }
 
     pub fn or(&self, right: &Self) -> Self {
-        i64x4(
-            self.0 | right.0,
-            self.1 | right.1,
-            self.2 | right.2,
-            self.3 | right.3,
-        )
+        I64x4(self.0 | right.0, self.1 | right.1, self.2 | right.2, self.3 | right.3)
     }
 }
 
 #[cfg(test)]
 mod bct_fcurl_tests {
     use super::*;
-    use crate::constants::*;
     use crate::convert::*;
 
     const MAINNET_TRYTES_1: &str = "TLFCFY9IMZVINTAZRCUWTKAFENIBIFOGKWDZQIRTYSVVHTSIIZZ9RLUYVTLXEHACXIUFJJQNFRJYMGGYDWOBNMTPFE9CGVVTREVUJKIXRHSOPFAXMNEMHEW9ZE9HVFEDEORKWGLNECZ9MXLDHPBAOMO9ZMSZJCZLAWWZKOLHBASHYNMCBCPZOXOLLVMFZVCTUDQZSIUSITRDHHXGAOVTOMSKDTZXLSCNHNXJNVGOTZPJDRHOBUAPIAIGLCETVDWSOPEKAOWBNUIEUTTLPFQLRYVRJQJOCBVOZEK9TQMJQUPEZKLHIVMO9TRIUBQNXJYIXFUWFUYWDIIDBQXRYULR9RXPSLTRFY9IIMQBLGOXUZJAKFSEJCSTYP9SWRFCNTMDMRFFWCVZTNFYLFZISPCQ99OSTMJBNLYCQLKWETRLJEOEBJZBO9ZUZMGQIRCCLBANSVYABGKMQCKWIWHHH9FGKGIURCJDKTIQBFENQCYWAX9WHNQ9OKGIWILNFJGMERJNBHDPNFCASDKZLOXLALOSMUFXYKKCDKWVX9PBOVXMAICVTHBLPWPFWJWYBTLJLXNOHREEFTJDLTYPPFMZ9MTPBHNXQL9MXRLGMKRN9EJYZMDZEOZOMKVYWKORKIBKDYZTCPOHYIADIVJWCHRVWCE9DSSHIEEINJYQWBFBTOCZOBL9LLFKWIFAJT9ZQKEUZTBARTEYUBYQOKMRMKWLTJOPVKIDXIUWQFLVWBTAYNOREZSCKAGRGVRLQUBUGKKHLL9YBFMGUMNSUMAXMCRQOQHBYJJRBMFQIUPZEBXFMHYJMAMAHUMMBLRDPBIOMJ9OCHBSBIFX9YSXPPVDMUCICHCSYRWUXXUEROHXGGEJBFJE9S9QGAQ9YOPIZOKGXRXMMFBLGVMC9QXJZTI99TATFJDJORMGJPAQGQICFHYAMWEUKWYYKIGTWYPNC9ZPQEKWAOZVCBIPZUTZUKJXFPWTQUKWIYJBULBJEJZGYEHVYUHFROLQYYPI9WCXHHWEITITPTXMTBWLJRAYV9LZK9FVGBOQRSWEFRMWBKBHAYWETHDTAAPOPPHFOX9PYQAXDVMWXGW9HDTLSINGRWGODCBNVXXYVDKJ9OROIZAULXMZUEVSDPWUJC9FEQAWMDOI9TALZAHX9ZHYSQEJOSZTHZPKWMZBTWUKNJUJNTZRWEYVWUAXVEP9NSZVYHLHZWDDTCQQTCDHTQPZXTM9ERHNNEORYBUKIRJPZORWXJDRRURZCBYLMFZKSZZVJIWXBXSKJMKUAFYKRQKVIGJJGYLXKFWZEIU9JJXRQSOFDLGXELTVBXKPDLKRLJTGVOD9QGIVVWS9EZAMBPDIEABEJJKTYQZVOD9TIGXPDJGJBRLHXCKKFFVQXFPQNKLMOMOJUDNFZCYEP9CQVNQKRYLCMCFNM9JIE9XUCDBX9ABNHZTSRROFYZCXDRLRBMYYRWUEWHC9QGGHBIQVBISISOZWXGXKQWSOASERXWNQXHWUGXDKIVDDWZZIRIERRSEOMEREYYCO9QIXKQOZQZALPBNQCBJWPV9BYDGYTDJPHXFZQ9CQZIDZTORKIABS9LFWOPWISFESVOTWIBTGDFIZBDOAJO9DJVAIQVUYEAWPRETXYWFMMUUUEUMWPGTWEUSZHJUCYGZDCSGVZGNTJBWGHGYZEOTOVIYAODKWJJLJFZGIKVGUYXRGAFMOFDM9SHSWVSDKAJGEVCORATXJHEGLYTVCGCTXZVUFVLZ9CYFCA9MM9STIZHKTGYJUACFVEGSZYJBNRWTRO9JUWZWOSPGJYIRTQSD9EPHONGYDWUQXYRHGXUSVGIAPVGOLLFQTQOYSOMHAOCNVKLPGRKIEVZGCFVWLTBEMM9QMUML9RVYCMOFIUCNTTALZKSGIPVNLFUGDPTHVGKDUIOZMKAEPYSYZTNFTMWJY99VGIM9YHI9WIVVJAANTHPKT9HOWWZSYRDMVJCSKASOZOOPAUOMMSOWNUTTGREQWPQDKRGGSODHKPFUIXKLVDFJSOQH9ZYMREQNXHHPOEISKPGTNIEBKV9SEFTKZZZVXQAYFPYTDMJVUULL9YNMITHTRB9GKILOFJCCYXKMPIYNNOXTVNLDKTODGEADIRIUXHNGVAAIEFYG9BE9BRNAZUABPF9BVODCZGPXBLBVJIXYLLYDVDUKVYGIWETMSKYXGYMXSXGKPDZMG9NOFIMSKFKIHTQSAVGIWERREF9MEAOCDE99FXRR9FDCKOZOJBTOZEVLLCASBONUMPDVD9XWSHEGZ9999999999999999999999999999999999999999999999VPRPPZD99A99999999J99999999KOJZIA9PSFRKG9ZUOJO9PGDIEFPGPSDKVPVBSXDIOOXAPZHKLJHEULIJKYRTDXOJKTRFYYSABGTBRKVCBBZZSWTVHQSQGJKQAHLINBNNLFTQERSITF9BAJCODBNLLQEQZETPQBGWFYCOBUARDAGTCGQCGOUBLA9999QPBMLSSKBO9ILX9QKYCAXNHLK9KFUJYO99GOO99VYROHOVXACRKYPFVY9JRSHJIKFGBHOCXQFPMZZ9999999999999999999999999999999HKJSFUCME999999999MMMMMMMMMCVMNOI9PFCHLRVXSUEOCRLTRMUF";

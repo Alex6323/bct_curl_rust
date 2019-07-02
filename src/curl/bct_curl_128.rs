@@ -1,35 +1,38 @@
-use crate::{bct_types::*, constants::*};
+use crate::bct::types::*;
+use crate::constants::*;
 
-pub struct BCTCurl64 {
+pub struct BCTCurl128 {
     hash_length: usize,
     num_rounds: usize,
     state_length: usize,
-    state: Trits64,
+    state: Trits128,
 }
 
-impl BCTCurl64 {
+impl BCTCurl128 {
     pub fn new(hash_length: usize, num_rounds: usize) -> Self {
-        BCTCurl64 {
+        BCTCurl128 {
             hash_length,
             num_rounds,
             state_length: 3 * hash_length,
-            state: Trits64::from(
-                vec![HIGH_U64_BITS; 3 * hash_length],
-                vec![HIGH_U64_BITS; 3 * hash_length],
+            state: Trits128::from(
+                vec![HIGH_U128_BITS; 3 * hash_length],
+                vec![HIGH_U128_BITS; 3 * hash_length],
             ),
         }
     }
 
     pub fn reset(&mut self) {
         for i in 0..self.state_length {
-            self.state.lo[i] = HIGH_U64_BITS;
-            self.state.hi[i] = HIGH_U64_BITS;
+            self.state.lo[i] = HIGH_U128_BITS;
+            self.state.hi[i] = HIGH_U128_BITS;
         }
     }
 
+    // 
     // * Determines number of inputted trits
-    // * loops through the input trits in chunks of '243', copies a chunk into the state and transforms it.
-    pub fn absorb(&mut self, trits: Trits64) {
+    // * loops through the input trits in chunks of '243', copies a chunk into the state
+    //   and transforms it.
+    pub fn absorb(&mut self, trits: Trits128) {
         assert_eq!(trits.lo.len(), trits.hi.len());
 
         let mut length = trits.lo.len();
@@ -62,8 +65,8 @@ impl BCTCurl64 {
         }
     }
 
-    pub fn squeeze(&mut self, trit_count: usize) -> Trits64 {
-        let mut result = Trits64::from(vec![0; trit_count], vec![0; trit_count]);
+    pub fn squeeze(&mut self, trit_count: usize) -> Trits128 {
+        let mut result = Trits128::from(vec![0; trit_count], vec![0; trit_count]);
 
         let hash_count = trit_count / self.hash_length;
 
@@ -93,8 +96,8 @@ impl BCTCurl64 {
     }
 
     fn transform(&mut self) {
-        let mut scratch_pad_lo = vec![0u64; self.state_length];
-        let mut scratch_pad_hi = vec![0u64; self.state_length];
+        let mut scratch_pad_lo = vec![0u128; self.state_length];
+        let mut scratch_pad_hi = vec![0u128; self.state_length];
         let mut scratch_pad_index = 0;
 
         for _ in 0..self.num_rounds {
@@ -129,24 +132,23 @@ mod bct_curl_tests {
     const MAINNET_HASH_1: &str =
         "MGPBAHYHKSQMMXXONAOOEDQS9RFEKMOOJUCGXSFYLXBHQFWIHMJGFJWDSZTGKHNBCSENCXSPQOSZ99999";
 
-    // NOTE: FAILS ATM!!!
     #[test]
     fn bct_curl_works() {
         let tx_trits = from_tryte_string(MAINNET_TRYTES_1);
-        let mut bct_curl = BCTCurl64::new(HASH_LENGTH, NUM_ROUNDS);
+        let mut bct_curl = BCTCurl128::new(HASH_LENGTH, NUM_ROUNDS);
 
         // add those trits a few times
         let mut mux = BCTMultiplexer::default();
         mux.add(&tx_trits);
         mux.add(&tx_trits);
 
-        let trits64 = mux.extract64();
+        let trits128 = mux.extract128();
 
-        bct_curl.absorb(trits64);
+        bct_curl.absorb(trits128);
 
-        let hash_trits64 = bct_curl.squeeze(HASH_LENGTH);
+        let hash_trits128 = bct_curl.squeeze(HASH_LENGTH);
 
-        let demux = BCTDemultiplexer64::from(hash_trits64);
+        let demux = BCTDemultiplexer128::from(hash_trits128);
         let hash_trits1 = demux.get(0);
         let hash_trits2 = demux.get(1);
         let hash_trits3 = demux.get(2);

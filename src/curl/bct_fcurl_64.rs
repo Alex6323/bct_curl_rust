@@ -1,9 +1,15 @@
 use crate::constants::*;
 use scoped_pool::Pool;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{
+    AtomicUsize,
+    Ordering,
+};
 
 // TODO: process rest chunk
-pub fn bct_fcurl_64_par(transactions: &Vec<Vec<i8>>, num_rounds: usize) -> Vec<[i8; HASH_LENGTH]> {
+pub fn bct_fcurl_64_par(
+    transactions: &Vec<Vec<i8>>,
+    num_rounds: usize,
+) -> Vec<[i8; HASH_LENGTH]> {
     let num_threads = num_cpus::get();
     let pool = Pool::new(num_threads);
     let chunk_length = transactions.len() / num_threads;
@@ -15,8 +21,10 @@ pub fn bct_fcurl_64_par(transactions: &Vec<Vec<i8>>, num_rounds: usize) -> Vec<[
                 let i = index.fetch_add(1, Ordering::SeqCst);
                 //
                 let offset = i * chunk_length;
-                let hash_trits =
-                    bct_fcurl_64(&transactions[offset..offset + chunk_length], num_rounds);
+                let _hash_trits = bct_fcurl_64(
+                    &transactions[offset..offset + chunk_length],
+                    num_rounds,
+                );
                 // TODO: create output vector and actually return something
             })
         }
@@ -26,7 +34,10 @@ pub fn bct_fcurl_64_par(transactions: &Vec<Vec<i8>>, num_rounds: usize) -> Vec<[
     vec![]
 }
 
-pub fn bct_fcurl_64(transactions: &[Vec<i8>], num_rounds: usize) -> Vec<[i8; HASH_LENGTH]> {
+pub fn bct_fcurl_64(
+    transactions: &[Vec<i8>],
+    num_rounds: usize,
+) -> Vec<[i8; HASH_LENGTH]> {
     let mut offset = 0;
     let mut length = transactions.len();
     let mut hashes = vec![[0i8; HASH_LENGTH]; length];
@@ -168,7 +179,7 @@ mod bct_fcurl_tests {
         "MGPBAHYHKSQMMXXONAOOEDQS9RFEKMOOJUCGXSFYLXBHQFWIHMJGFJWDSZTGKHNBCSENCXSPQOSZ99999";
 
     #[test]
-    fn bct_fcurl_works() {
+    fn bct_fcurl_64_works() {
         let mut transactions = vec![];
         let tx_trits = from_tryte_string(MAINNET_TRYTES_1);
         transactions.push(tx_trits);
