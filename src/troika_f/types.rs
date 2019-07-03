@@ -1,3 +1,4 @@
+/*
 // trits are stored as two bits, one inside p, the other inside n, both have the
 // same 'index' names 'p' (positive) and 'n' (negative) result from using these
 // functions in a lib for balanced ternary before so i just left them here
@@ -16,3 +17,4 @@ pub fn t27_clean(a: T27) -> T27 {
         n: a.n & 0x07ff_ffff,
     }
 }
+*/

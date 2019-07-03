@@ -1,3 +1,4 @@
+/*
 pub const T27_NUM_COLUMNS: usize = 9;
 pub const T27_NUM_SLICES: usize = 27;
 pub const T27_NUM_ROWS: usize = 3;
@@ -46,3 +47,4 @@ pub const PADDING: u8 = 0x1;
 //#define X (_0(a) & _2(b) & _2(c))     // 24
 //#define Y (_1(a) & _2(b) & _2(c))     // 25
 //#define Z (_2(a) & _2(b) & _2(c))     // 26
+*/

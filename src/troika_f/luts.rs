@@ -1,3 +1,4 @@
+/*
 use super::constants::*;
 
 pub const SBOX_LOOKUP: [u32; 27] = [
@@ -320,3 +321,4 @@ fn print_round_constants() {
     }
     */
 }
+*/

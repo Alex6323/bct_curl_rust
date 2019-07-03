@@ -109,7 +109,8 @@ unsafe fn transform(
         *s1_lo.offset(0) = !(d & a);
         *s1_hi.offset(0) = (a ^ *s2_hi.offset(364)) | d;
 
-        inner_loop_runtime_select(s2_lo, s2_hi, s1_lo, s1_hi);
+        //inner_loop_runtime_select(s2_lo, s2_hi, s1_lo, s1_hi);
+        inner_loop_basic(s2_lo, s2_hi, s1_lo, s1_hi);
 
         // Swap scratchpad and state
         lo = s1_lo;
@@ -134,12 +135,13 @@ macro_rules! swap {
 // NOTE: currently doesn't produce the correct hash, or in other words: it doesn't work
 // The swap macro invocations align the result data, so the compiler can copy larger
 // chunks back into the state. Unfortunately it had no effect performance-wise :(
+#[rustfmt::skip]
 simd_runtime_generate!(
     fn inner_loop(
         s2_lo: *const i64,
         s2_hi: *const i64,
         s1_lo: *mut i64,
-        s1_hi: *mut i64,
+        s1_hi: *mut i64
     ) {
         let step = S::VI64_WIDTH;
 

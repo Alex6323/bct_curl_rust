@@ -1,97 +1,50 @@
+//! Faster Curl (functional) implementation
+
 use crate::constants::*;
 
-pub struct Curl {
-    num_rounds: usize,
-    state: [i8; STATE_LENGTH],
-    scratchpad: [i8; STATE_LENGTH],
+pub fn curl_func(trits: &[i8], num_rounds: usize) -> [i8; HASH_LENGTH] {
+    let mut state = [0i8; STATE_LENGTH];
+
+    for i in (0..TRANSACTION_TRIT_LENGTH).step_by(HASH_LENGTH) {
+        state[0..HASH_LENGTH].copy_from_slice(&trits[i..i + HASH_LENGTH]);
+        unsafe {
+            transform(&mut state, num_rounds);
+        }
+    }
+
+    let mut hash = [0i8; HASH_LENGTH];
+    hash.copy_from_slice(&state[..HASH_LENGTH]);
+    hash
 }
 
-impl Default for Curl {
-    fn default() -> Self {
-        Curl {
-            num_rounds: NUM_CURL_ROUNDS,
-            state: [0; STATE_LENGTH],
-            scratchpad: [0; STATE_LENGTH],
+#[inline]
+unsafe fn transform(state: &mut [i8; STATE_LENGTH], num_rounds: usize) {
+    let mut state2 = [0i8; STATE_LENGTH];
+    state2.copy_from_slice(state);
+
+    let mut t: *mut i8;
+    let mut s1 = state.as_mut_ptr();
+    let mut s2 = state2.as_mut_ptr();
+
+    for _ in 0..num_rounds {
+        *s1 = TRUTH_TABLE[(*s2 + (*s2.offset(364) << 2) + 5) as usize];
+
+        for i in 0..364 {
+            *s1.offset(2 * i + 1) = TRUTH_TABLE
+                [(*s2.offset(364 - i) + (*s2.offset(729 - (i + 1)) << 2) + 5) as usize];
+            *s1.offset(2 * i + 2) = TRUTH_TABLE[(*s2.offset(729 - (i + 1))
+                + (*s2.offset(364 - (i + 1)) << 2)
+                + 5) as usize];
         }
-    }
-}
-impl Curl {
-    pub fn reset(&mut self) {
-        self.state.iter_mut().for_each(|t| *t = 0);
-    }
 
-    pub fn absorb(&mut self, trits: &[i8], mut offset: usize, mut length: usize) {
-        loop {
-            let chunk_length = {
-                if length < HASH_LENGTH {
-                    length
-                } else {
-                    HASH_LENGTH
-                }
-            };
-
-            self.state[0..chunk_length].copy_from_slice(&trits[offset..offset + chunk_length]);
-
-            self.transform();
-
-            offset += chunk_length;
-
-            if length > chunk_length {
-                length -= chunk_length;
-            } else {
-                break;
-            }
-        }
-    }
-
-    pub fn squeeze(&mut self, trits: &mut [i8], mut offset: usize, mut length: usize) {
-        loop {
-            let chunk_length = {
-                if length < HASH_LENGTH {
-                    length
-                } else {
-                    HASH_LENGTH
-                }
-            };
-
-            trits[offset..offset + chunk_length].copy_from_slice(&self.state[0..chunk_length]);
-
-            self.transform();
-
-            offset += chunk_length;
-
-            if length > chunk_length {
-                length -= chunk_length;
-            } else {
-                break;
-            }
-        }
-    }
-
-    fn transform(&mut self) {
-        let mut scratchpad_index = 0;
-
-        for _ in 0..self.num_rounds {
-            self.scratchpad.copy_from_slice(&self.state);
-            for state_index in 0..STATE_LENGTH {
-                let prev_scratchpad_index = scratchpad_index;
-
-                if scratchpad_index < 365 {
-                    scratchpad_index += 364;
-                } else {
-                    scratchpad_index -= 365;
-                }
-
-                self.state[state_index] = TRUTH_TABLE[(self.scratchpad[prev_scratchpad_index]
-                    + (self.scratchpad[scratchpad_index] << 2)
-                    + 5) as usize];
-            }
-        }
+        t = s1;
+        s1 = s2;
+        s2 = t;
     }
 }
 
 #[cfg(test)]
-mod curl_tests {
+mod fcurl_tests {
     use super::*;
     use crate::convert::*;
 
@@ -100,15 +53,11 @@ mod curl_tests {
         "MGPBAHYHKSQMMXXONAOOEDQS9RFEKMOOJUCGXSFYLXBHQFWIHMJGFJWDSZTGKHNBCSENCXSPQOSZ99999";
 
     #[test]
-    fn curl_works() {
+    fn fcurl_works() {
         let tx_trits = from_tryte_string(MAINNET_TRYTES_1);
         //println!("{:?}", tx_trits);
         //println!("{}", tx_trits.len());
-        let mut curl = Curl::default();
-        curl.absorb(&tx_trits, 0, tx_trits.len());
-
-        let mut hash_trits = vec![0i8; HASH_LENGTH];
-        curl.squeeze(&mut hash_trits, 0, HASH_LENGTH);
+        let hash_trits = Vec::from(&curl_func(&tx_trits, NUM_ROUNDS)[..]);
 
         println!("{:?}", hash_trits);
         println!("{}", hash_trits.len());
@@ -117,5 +66,4 @@ mod curl_tests {
         println!("{}", tryte_string);
         assert_eq!(MAINNET_HASH_1, tryte_string);
     }
-
 }

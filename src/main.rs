@@ -1,13 +1,14 @@
 use curl_troika_benchmark::bct::multiplexer::*;
 use curl_troika_benchmark::constants::*;
-use curl_troika_benchmark::curl::bct_curl_128::*;
-use curl_troika_benchmark::curl::bct_curl_64::*;
-use curl_troika_benchmark::curl::bct_fcurl_128::*;
-use curl_troika_benchmark::curl::bct_fcurl_64::*;
-use curl_troika_benchmark::curl::curl::Curl;
-use curl_troika_benchmark::curl::fcurl::fcurl;
+use curl_troika_benchmark::curl::Curl;
+use curl_troika_benchmark::curl_bct::curl_bct_128::*;
+use curl_troika_benchmark::curl_bct::curl_bct_64::*;
+use curl_troika_benchmark::curl_func::curl_func;
+use curl_troika_benchmark::curl_func_bct::curl_func_bct_128::*;
+use curl_troika_benchmark::curl_func_bct::curl_func_bct_64::*;
+use curl_troika_benchmark::curl_func_bct_simd::*;
+use curl_troika_benchmark::reference::xxhash::xxhash;
 use curl_troika_benchmark::troika::*;
-use curl_troika_benchmark::xxhash::*;
 
 use std::sync::atomic::{
     AtomicUsize,
@@ -70,8 +71,8 @@ fn main() {
     bench_functional_bct_curl_64(NUM_HASHES);
     bench_functional_bct_curl_128(NUM_HASHES);
     bench_functional_bct_curl_64_par(NUM_HASHES);
-    //bench_simd_functional_bct_curl_64(NUM_HASHES);
-    //bench_simd_functional_bct_curl_64_par(NUM_HASHES);
+    bench_simd_functional_bct_curl_64(NUM_HASHES);
+    bench_simd_functional_bct_curl_64_par(NUM_HASHES);
     bench_xxhash(NUM_HASHES);
     bench_xxhash_par(NUM_HASHES);
     bench_troika(NUM_HASHES);
@@ -131,7 +132,7 @@ fn bench_functional_curl(num_hashes: usize) {
 
     let start = Instant::now();
     for i in 0..transactions_as_trits.len() {
-        let _hash_trits = fcurl(&transactions_as_trits[i], NUM_CURL_ROUNDS);
+        let _hash_trits = curl_func(&transactions_as_trits[i], NUM_CURL_ROUNDS);
     }
 
     print_timing(start.elapsed(), num_hashes);
@@ -154,7 +155,8 @@ fn bench_functional_curl_par(num_hashes: usize) {
                 let offset = i * chunk_length;
                 //println!("offset {} = {}", i, offset);
                 for j in offset..offset + chunk_length {
-                    let _hash_trits = fcurl(&transactions_as_trits[j], NUM_CURL_ROUNDS);
+                    let _hash_trits =
+                        curl_func(&transactions_as_trits[j], NUM_CURL_ROUNDS);
                 }
             })
         }
@@ -256,7 +258,7 @@ fn bench_simd_functional_bct_curl_64(num_hashes: usize) {
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
     let start = Instant::now();
-    //let _hash_trits = simd_bct_fcurl_64(&transactions_as_trits, NUM_CURL_ROUNDS);
+    let _hash_trits = simd_bct_fcurl_64(&transactions_as_trits, NUM_CURL_ROUNDS);
 
     print_timing(start.elapsed(), num_hashes);
 }
@@ -267,7 +269,7 @@ fn bench_simd_functional_bct_curl_64_par(num_hashes: usize) {
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
     let start = Instant::now();
-    //let _hash_trits = simd_bct_fcurl_64_par(&transactions_as_trits, NUM_CURL_ROUNDS);
+    let _hash_trits = simd_bct_fcurl_64_par(&transactions_as_trits, NUM_CURL_ROUNDS);
 
     print_timing(start.elapsed(), num_hashes);
 }
