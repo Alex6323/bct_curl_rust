@@ -1,5 +1,5 @@
 //#![deny(warnings)]
-#![deny(bad_style)]
+//#![deny(bad_style)]
 
 pub mod bct;
 pub mod constants;
@@ -12,4 +12,4 @@ pub mod curl_func_bct_simd;
 pub mod reference;
 pub mod troika;
 pub mod troika_f;
-pub mod troika_s;
+//pub mod troika_s;

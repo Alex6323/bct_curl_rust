@@ -1,14 +1,17 @@
-use curl_troika_benchmark::bct::multiplexer::*;
-use curl_troika_benchmark::constants::*;
-use curl_troika_benchmark::curl::Curl;
-use curl_troika_benchmark::curl_bct::curl_bct_128::*;
-use curl_troika_benchmark::curl_bct::curl_bct_64::*;
-use curl_troika_benchmark::curl_func::curl_func;
-use curl_troika_benchmark::curl_func_bct::curl_func_bct_128::*;
-use curl_troika_benchmark::curl_func_bct::curl_func_bct_64::*;
-use curl_troika_benchmark::curl_func_bct_simd::*;
-use curl_troika_benchmark::reference::xxhash::xxhash;
-use curl_troika_benchmark::troika::*;
+use curl_troika_benchmark::{
+    bct::multiplexer::*,
+    constants::*,
+    curl::Curl,
+    curl_bct::curl_bct_128::*,
+    curl_bct::curl_bct_64::*,
+    curl_func::curl_func,
+    curl_func_bct::curl_func_bct_128::*,
+    curl_func_bct::curl_func_bct_64::*,
+    curl_func_bct_simd::*,
+    reference::xxhash::xxhash,
+    troika::*,
+    troika_f::*,
+};
 
 use std::sync::atomic::{
     AtomicUsize,
@@ -63,23 +66,25 @@ fn main() {
     println!();
 
     bench_curl(NUM_HASHES);
-    bench_curl_par(NUM_HASHES);
     bench_functional_curl(NUM_HASHES);
-    bench_functional_curl_par(NUM_HASHES);
     bench_bct_curl_64(NUM_HASHES);
-    bench_bct_curl_128(NUM_HASHES);
+    //bench_bct_curl_128(NUM_HASHES);
     bench_functional_bct_curl_64(NUM_HASHES);
-    bench_functional_bct_curl_128(NUM_HASHES);
-    bench_functional_bct_curl_64_par(NUM_HASHES);
-    bench_simd_functional_bct_curl_64(NUM_HASHES);
-    bench_simd_functional_bct_curl_64_par(NUM_HASHES);
-    bench_xxhash(NUM_HASHES);
-    bench_xxhash_par(NUM_HASHES);
+    //bench_simd_functional_bct_curl_64(NUM_HASHES);
     bench_troika(NUM_HASHES);
+    bench_ftroika(NUM_HASHES);
+    bench_xxhash(NUM_HASHES);
+
+    //bench_curl_par(NUM_HASHES);
+    //bench_functional_curl_par(NUM_HASHES);
+    //bench_functional_bct_curl_128(NUM_HASHES);
+    //bench_functional_bct_curl_64_par(NUM_HASHES);
+    //bench_simd_functional_bct_curl_64_par(NUM_HASHES);
+    //bench_xxhash_par(NUM_HASHES);
 }
 
 fn bench_curl(num_hashes: usize) {
-    print_title("Curl (1 thread)");
+    print_title("Curl");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
     let mut curl = Curl::default();
@@ -126,7 +131,7 @@ fn bench_curl_par(num_hashes: usize) {
 }
 
 fn bench_functional_curl(num_hashes: usize) {
-    print_title("Functional Curl (1 thread)");
+    print_title("Functional Curl");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -166,7 +171,7 @@ fn bench_functional_curl_par(num_hashes: usize) {
 }
 
 fn bench_bct_curl_64(num_hashes: usize) {
-    print_title("BCT-Curl-64 (1 thread)");
+    print_title("BCT-Curl-64");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -195,7 +200,7 @@ fn bench_bct_curl_64(num_hashes: usize) {
 }
 
 fn bench_bct_curl_128(num_hashes: usize) {
-    print_title("BCT-Curl-128 (1 thread)");
+    print_title("BCT-Curl-128");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -220,7 +225,7 @@ fn bench_bct_curl_128(num_hashes: usize) {
 }
 
 fn bench_functional_bct_curl_64(num_hashes: usize) {
-    print_title("Functional BCT-Curl/64 (1 thread)");
+    print_title("Functional BCT-Curl-64");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -231,7 +236,7 @@ fn bench_functional_bct_curl_64(num_hashes: usize) {
 }
 
 fn bench_functional_bct_curl_128(num_hashes: usize) {
-    print_title("Functional BCT-Curl-128 (1 thread)");
+    print_title("Functional BCT-Curl-128");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -253,7 +258,7 @@ fn bench_functional_bct_curl_64_par(num_hashes: usize) {
 }
 
 fn bench_simd_functional_bct_curl_64(num_hashes: usize) {
-    print_title("SIMD Functional BCT-Curl-64 (1 thread)");
+    print_title("SIMD Functional BCT-Curl-64");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -275,7 +280,7 @@ fn bench_simd_functional_bct_curl_64_par(num_hashes: usize) {
 }
 
 fn bench_xxhash(num_hashes: usize) {
-    print_title("xxHash (1 thread)");
+    print_title("xxHash");
 
     let transactions_as_trits = get_random_tx_balanced_trits(num_hashes);
 
@@ -312,7 +317,7 @@ fn bench_xxhash_par(num_hashes: usize) {
 }
 
 fn bench_troika(num_hashes: usize) {
-    print_title("Troika (1 thread)");
+    print_title("Troika");
 
     let transactions_as_trits = get_random_tx_unbalanced_trits(num_hashes);
     let mut hash_trits = [0; 243];
@@ -320,6 +325,24 @@ fn bench_troika(num_hashes: usize) {
     let start = Instant::now();
     for i in 0..transactions_as_trits.len() {
         troika::troika_var_rounds(
+            &mut hash_trits,
+            &transactions_as_trits[i],
+            NUM_TROIKA_ROUNDS,
+        );
+    }
+
+    print_timing(start.elapsed(), num_hashes);
+}
+
+fn bench_ftroika(num_hashes: usize) {
+    print_title("F-Troika");
+
+    let transactions_as_trits = get_random_tx_unbalanced_trits(num_hashes);
+    let mut hash_trits = [0; 243];
+
+    let start = Instant::now();
+    for i in 0..transactions_as_trits.len() {
+        ftroika::ftroika_var_rounds(
             &mut hash_trits,
             &transactions_as_trits[i],
             NUM_TROIKA_ROUNDS,

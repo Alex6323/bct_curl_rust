@@ -1,6 +1,6 @@
 use super::types::Trit;
 
-pub const NUM_ROUNDS: usize = 24;
+pub const NUM_MAX_ROUNDS: usize = 24;
 pub const TROIKA_RATE: usize = 243;
 
 pub const COLUMNS: usize = 9;

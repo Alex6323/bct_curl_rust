@@ -14,6 +14,7 @@ paste = "0.1.5"
 twox-hash = "1.4.2"
 bytes = "0.4.12"
 packed_simd = "0.3.3"
+failure = "0.1.5"
 
 [lib]
 name = "curl_troika_benchmark"
